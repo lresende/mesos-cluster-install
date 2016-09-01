@@ -51,8 +51,26 @@ function prepareOs {
   #ssh -o StrictHostKeyChecking=no $1 "systemctl disable firewalld"
 }
 
+
+function installDocker {
+  cat etc/yum.repos.d/docker.repo | ssh -o StrictHostKeyChecking=no $1 "cat > /etc/yum.repos.d/docker.repo"
+
+  #ssh -o StrictHostKeyChecking=no $1 "curl -fsSL https://get.docker.com/ | sh"
+  ssh -o StrictHostKeyChecking=no $1 "yum install -y docker-engine"
+
+  #ssh -o StrictHostKeyChecking=no ${i} "mkdir -p /etc/systemd/system/docker.service.d"
+  #cat etc/systemd/system/docker.service.d/override.conf | ssh -o StrictHostKeyChecking=no $1 "cat > /etc/systemd/system/docker.service.d/override.conf"
+  cat usr/lib/systemd/system/docker.service | ssh -o StrictHostKeyChecking=no $1 "cat > /usr/lib/systemd/system/docker.service"
+  cat usr/lib/systemd/system/docker.socket | ssh -o StrictHostKeyChecking=no $1 "cat > /usr/lib/systemd/system/docker.socket"
+
+  ssh -o StrictHostKeyChecking=no $1 "systemctl daemon-reload"
+  ssh -o StrictHostKeyChecking=no $1 "systemctl start docker"
+  ssh -o StrictHostKeyChecking=no $1 "systemctl enable docker"
+}
+
 prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
 done
 
+installDocker $BOOTSTRAP
