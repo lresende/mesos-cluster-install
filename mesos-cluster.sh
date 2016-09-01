@@ -51,7 +51,6 @@ function prepareOs {
   #ssh -o StrictHostKeyChecking=no $1 "systemctl disable firewalld"
 }
 
-
 function installDocker {
   cat etc/yum.repos.d/docker.repo | ssh -o StrictHostKeyChecking=no $1 "cat > /etc/yum.repos.d/docker.repo"
 
@@ -68,7 +67,6 @@ function installDocker {
   ssh -o StrictHostKeyChecking=no $1 "systemctl enable docker"
 }
 
-
 function prepareDCOS {
   ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos-install"
   ssh -o StrictHostKeyChecking=no $1 "mkdir -p /opt/dcos-install/genconf"
@@ -81,6 +79,14 @@ function prepareDCOS {
   ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && curl -OL https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
 }
 
+function installDCOS {
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --genconf"
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --install-prereqs"
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --preflight"
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --deploy"
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --postflight"
+}
+
 prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
@@ -88,3 +94,4 @@ done
 
 installDocker $BOOTSTRAP
 prepareDCOS   $BOOTSTRAP
+installDCOS   $BOOTSTRAP
