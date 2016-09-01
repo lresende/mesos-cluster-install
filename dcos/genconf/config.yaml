@@ -1,0 +1,22 @@
+---
+agent_list:
+- 172.16.159.216
+- 172.16.159.219
+- 172.16.159.220
+- 172.16.159.221
+- 172.16.159.222
+bootstrap_url: file:///opt/dcos_install_tmp
+cluster_name: DC/OS
+exhibitor_storage_backend: static
+ip_detect_filename: /genconf/ip-detect
+master_discovery: static
+master_list:
+- 172.16.157.167
+oauth_enabled: false
+process_timeout: 10000
+resolvers:
+- 8.8.8.8
+- 8.8.4.4
+ssh_port: 22
+ssh_user: root
+telemetry_enabled: false

@@ -68,9 +68,23 @@ function installDocker {
   ssh -o StrictHostKeyChecking=no $1 "systemctl enable docker"
 }
 
+
+function prepareDCOS {
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos-install"
+  ssh -o StrictHostKeyChecking=no $1 "mkdir -p /opt/dcos-install/genconf"
+  ssh -o StrictHostKeyChecking=no $1 "mkdir -p /opt/dcos-install/tmp"
+
+  cat dcos/genconf/config.yaml | ssh -o StrictHostKeyChecking=no $1 "cat > /opt/dcos-install/genconf/config.yaml"
+  cat dcos/genconf/ip-detect | ssh -o StrictHostKeyChecking=no $1 "cat > /opt/dcos-install/genconf/ip-detect"
+  ssh -o StrictHostKeyChecking=no $1 "cp ~/.ssh/id_rsa /opt/dcos-install/genconf/ssh_key && chmod 600 /opt/dcos-install/genconf/ssh_key"
+
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && curl -OL https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+}
+
 prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
 done
 
 installDocker $BOOTSTRAP
+prepareDCOS   $BOOTSTRAP
