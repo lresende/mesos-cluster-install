@@ -87,6 +87,13 @@ function installDCOS {
   ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && bash dcos_generate_config.sh --postflight"
 }
 
+function backupDCOS {
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install/genconf/serve && tar cf dcos-install.tar *"
+  mkdir backup
+  scp $1:/opt/dcos-install/genconf/serve/dcos-install.tar backup/dcos-install.tar
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install/genconf/serve && rm dcos-install.tar"
+}
+
 prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
@@ -95,3 +102,4 @@ done
 installDocker $BOOTSTRAP
 prepareDCOS   $BOOTSTRAP
 installDCOS   $BOOTSTRAP
+backupDCOS    $BOOTSTRAP
