@@ -1,17 +1,17 @@
 ---
 agent_list:
-- 172.16.159.216
-- 172.16.159.219
-- 172.16.159.220
-- 172.16.159.221
-- 172.16.159.222
+- 172.16.157.167
+- 172.16.157.170
+- 172.16.157.171
+- 172.16.157.198
+- 172.16.157.199
 bootstrap_url: file:///opt/dcos_install_tmp
-cluster_name: DC/OS
+cluster_name: STC-MESOS
 exhibitor_storage_backend: static
 ip_detect_filename: /genconf/ip-detect
 master_discovery: static
 master_list:
-- 172.16.157.167
+- 172.16.155.140
 oauth_enabled: false
 process_timeout: 10000
 resolvers:
