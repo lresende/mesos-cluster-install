@@ -76,7 +76,7 @@ function prepareDCOS {
   cat dcos/genconf/ip-detect | ssh -o StrictHostKeyChecking=no $1 "cat > /opt/dcos-install/genconf/ip-detect"
   ssh -o StrictHostKeyChecking=no $1 "cp ~/.ssh/id_rsa /opt/dcos-install/genconf/ssh_key && chmod 600 /opt/dcos-install/genconf/ssh_key"
 
-  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && curl -OL https://downloads.dcos.io/dcos/EarlyAccess/dcos_generate_config.sh"
+  ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && curl -OL https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh"
 }
 
 function installDCOS {
