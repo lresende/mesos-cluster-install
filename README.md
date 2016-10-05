@@ -15,7 +15,9 @@ cd mesos-cluster-install
 
 **Update information related to your cluster in mesos-cluster.sh :**
 
-Hosts : A list of FQDN for all cluster nodes Bootstrap : The FQDN for the DC/OS Boostrap node Master Public : The public IP for the DC/OS Master
+- Hosts : A list of FQDN for all cluster nodes 
+- Bootstrap : The FQDN for the DC/OS Boostrap node 
+- Master Public : The public IP for the DC/OS Master
 
 Installing DC/OS and deploying the cluster
 ------------------------------------------
