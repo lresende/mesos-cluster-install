@@ -67,6 +67,51 @@ function installDocker {
   ssh -o StrictHostKeyChecking=no $1 "systemctl enable docker"
 }
 
+function uninstallDCOS {
+  uninstallDCOSBootstrap
+  for node in ${HOSTS[@]}; do
+    uninstallDCOSNode ${node}
+  done
+  rm -rf backup
+}
+
+function uninstallDCOSBootstrap {
+  # Delete all containers
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "docker rm \$(docker ps -a -q)"
+  # Delete all images
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "docker rmi \$(docker images -q)"
+  # Uninstall
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "cd /opt/dcos-install && bash dcos_generate_config.sh --uninstall --offline"
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "rm -rf /opt/dcos-install"
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "rm -rf /opt/dcos_install_tmp"
+  ssh -o StrictHostKeyChecking=no $BOOTSTRAP "rm -rf /opt/dcos-prereqs.installed"
+}
+
+function uninstallDCOSNode {
+  ssh -o StrictHostKeyChecking=no $1 "/opt/mesosphere/bin/pkgpanda uninstall"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos-install"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos_install_tmp"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos-prereqs.installed"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/mesosphere"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /var/lib/dcos"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /var/lib/mesosphere"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /var/lib/mesos"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /var/lib/zookeeper"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /var/log/mesos"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/mesosphere"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/profile.d/dcos.sh"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/journald.conf.d/dcos.conf"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos-cfn-signal.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos-download.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos-link-env.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos-setup.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos.target.wants"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/dcos.target.wants.old"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/multi-user.target.wants/dcos-setup.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/multi-user.target.wants/dcos.target"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /run/dcos"
+}
+
 function prepareDCOS {
   ssh -o StrictHostKeyChecking=no $1 "rm -rf /opt/dcos-install"
   ssh -o StrictHostKeyChecking=no $1 "mkdir -p /opt/dcos-install/genconf"
@@ -93,6 +138,8 @@ function backupDCOS {
   scp $1:/opt/dcos-install/genconf/serve/dcos-install.tar backup/dcos-install.tar
   ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install/genconf/serve && rm dcos-install.tar"
 }
+
+uninstallDCOS
 
 prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
