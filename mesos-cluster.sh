@@ -28,20 +28,24 @@ ROOT=`cd $ROOT; pwd`
 INSTALL_FOLDER=/opt
 
 LOCALHOST="$(/bin/hostname -f)"
-HOSTS=(172.16.155.140 172.16.157.167 172.16.157.170 172.16.157.171 172.16.157.198 172.16.157.199)
-BOOTSTRAP=172.16.158.11
-MASTER=${HOSTS[1]}
-MASTER_PUBLIC=9.30.167.3
-NODES=${HOSTS[@]:2}
 
-NODES=("${HOSTS[@]:2}") ##Workaround to get node size
-NODE_SIZE=${#NODES[@]}
+# all hosts including boostrap
+HOSTS_SVL=(9.30.230.8 9.30.147.71 9.30.54.100 9.30.245.28 9.30.245.33 9.30.245.43 9.30.245.44 9.30.245.45)
+BOOTSTRAP_SVL=9.30.245.45
+MASTER_PUBLIC_SVL=9.30.230.8
+
+HOSTS_SL=(169.45.103.134 169.45.103.144 169.45.103.145 169.45.103.130 169.45.101.87)
+BOOTSTRAP_SL=169.45.101.87
+MASTER_PUBLIC_SL=169.45.103.134
+
+HOSTS=${HOSTS_SVL[@]}
+BOOTSTRAP=${BOOTSTRAP_SVL}
+MASTER_PUBLIC=${MASTER_PUBLIC_SVL}
 
 echo ">>> Cluster Configuration "
 echo "Bootstrap .........: $BOOTSTRAP"
-echo "Master ............: $MASTER"
 echo "Master Public......: $MASTER_PUBLIC"
-echo "Nodes..............: ${NODES[@]}"
+echo "Nodes..............: ${HOSTS[@]}"
 echo ">>> "
 
 function prepareOs {
@@ -60,19 +64,36 @@ function installDocker {
   ssh -o StrictHostKeyChecking=no $1 "yum install -y docker-engine"
 
   #ssh -o StrictHostKeyChecking=no ${i} "mkdir -p /etc/systemd/system/docker.service.d"
-  #cat etc/systemd/system/docker.service.d/override.conf | ssh -o StrictHostKeyChecking=no $1 "cat > /etc/systemd/system/docker.service.d/override.conf"
+  cat etc/systemd/system/docker.service.d/override.conf | ssh -o StrictHostKeyChecking=no $1 "cat > /etc/systemd/system/docker.service.d/override.conf"
   cat usr/lib/systemd/system/docker.service | ssh -o StrictHostKeyChecking=no $1 "cat > /usr/lib/systemd/system/docker.service"
   cat usr/lib/systemd/system/docker.socket | ssh -o StrictHostKeyChecking=no $1 "cat > /usr/lib/systemd/system/docker.socket"
 
   ssh -o StrictHostKeyChecking=no $1 "systemctl daemon-reload"
   ssh -o StrictHostKeyChecking=no $1 "systemctl start docker"
   ssh -o StrictHostKeyChecking=no $1 "systemctl enable docker"
+  #ssh -o StrictHostKeyChecking=no $1 "chkconfig --add docker"
+  #ssh -o StrictHostKeyChecking=no $1 "service docker start"
+}
+
+function uninstallDocker {
+  echo "Uninstall Docker for $1"
+  # Delete all containers
+  ssh -o StrictHostKeyChecking=no $1 "docker rm \$(docker ps -a -q)"
+  # Delete all images
+  ssh -o StrictHostKeyChecking=no $1 "docker rmi \$(docker images -q)"
+  ssh -o StrictHostKeyChecking=no $1 "systemctl disable docker"
+  ssh -o StrictHostKeyChecking=no $1 "yum erase -y docker-engine"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /etc/systemd/system/docker.service.d/override.conf"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /usr/lib/systemd/system/docker.service"
+  ssh -o StrictHostKeyChecking=no $1 "rm -rf /usr/lib/systemd/system/docker.socket"
 }
 
 function uninstallDCOS {
   uninstallDCOSBootstrap
+  uninstallDocker $BOOTSTRAP
   for node in ${HOSTS[@]}; do
     uninstallDCOSNode ${node}
+    uninstallDocker ${node}
   done
   rm -rf backup
 }
@@ -124,7 +145,7 @@ function prepareDCOS {
 
   cat dcos/genconf/config.yaml | ssh -o StrictHostKeyChecking=no $1 "cat > /opt/dcos-install/genconf/config.yaml"
   cat dcos/genconf/ip-detect | ssh -o StrictHostKeyChecking=no $1 "cat > /opt/dcos-install/genconf/ip-detect"
-  ssh -o StrictHostKeyChecking=no $1 "cp ~/.ssh/id_rsa /opt/dcos-install/genconf/ssh_key && chmod 600 /opt/dcos-install/genconf/ssh_key"
+  ssh -o StrictHostKeyChecking=no $1 "cp ~/.ssh/ibm_rsa /opt/dcos-install/genconf/ssh_key && chmod 600 /opt/dcos-install/genconf/ssh_key"
 
   ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install && curl -OL https://downloads.dcos.io/dcos/stable/dcos_generate_config.sh"
 }
@@ -148,12 +169,12 @@ function backupDCOS {
 
 uninstallDCOS
 
-prepareOs     $BOOTSTRAP
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
+  installDocker ${node}
 done
 
-installDocker $BOOTSTRAP
+#installDocker $BOOTSTRAP
 prepareDCOS   $BOOTSTRAP
 installDCOS   $BOOTSTRAP
 backupDCOS    $BOOTSTRAP

@@ -1,19 +1,15 @@
 ---
 master_list:
-- 9.30.230.8
+- 169.45.103.134
 public_agent_list:
-- 9.30.147.71
+- 169.45.103.144
 agent_list:
-- 9.30.54.100
-- 9.30.245.28
-- 9.30.245.33
-- 9.30.245.43
-- 9.30.245.44
-- 9.30.245.45
+- 169.45.103.145
+- 169.45.103.130
 bootstrap_url: file:///opt/dcos_install_tmp
 cluster_name: STC-MESOS
 exhibitor_storage_backend: static
-ip_detect_filename: /genconf/ip-detect
+ip_detect_filename: /genconf/ip-detect-sl
 master_discovery: static
 oauth_enabled: true
 process_timeout: 10000

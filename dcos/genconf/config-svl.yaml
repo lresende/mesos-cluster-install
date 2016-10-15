@@ -13,7 +13,7 @@ agent_list:
 bootstrap_url: file:///opt/dcos_install_tmp
 cluster_name: STC-MESOS
 exhibitor_storage_backend: static
-ip_detect_filename: /genconf/ip-detect
+ip_detect_filename: /genconf/ip-detect-svl
 master_discovery: static
 oauth_enabled: true
 process_timeout: 10000
