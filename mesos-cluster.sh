@@ -167,7 +167,15 @@ function backupDCOS {
   ssh -o StrictHostKeyChecking=no $1 "cd /opt/dcos-install/genconf/serve && rm dcos-install.tar"
 }
 
-uninstallDCOS
+### enable uninstall only
+if [ -z "$1" -o "$1" = "--uninstall" ]
+then
+  uninstallDCOS
+  if ["$1" = "--uninstall" ]
+  then
+    exit 0
+  fi
+fi
 
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
