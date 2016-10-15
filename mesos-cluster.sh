@@ -177,6 +177,17 @@ then
   fi
 fi
 
+### enable copy logs
+if [ "$1" = "--copylogs" ]
+then
+  mkdir logs
+  for node in ${HOSTS[@]}; do
+    mkdir -p logs/${node}
+    scp ${node}:/var/log/mesos logs/${node}
+  done
+  exit 0
+fi
+
 for node in ${HOSTS[@]}; do
   prepareOs ${node}
   installDocker ${node}
